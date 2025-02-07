@@ -1,21 +1,26 @@
-"use client"
+"use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
+export default function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const router = useRouter();
+  const [isVerified, setIsVerified] = useState<boolean | null>(null); // Use null to prevent flashing issues
 
-export default function ProtectedRoute({children} : {children : React.ReactNode}){
-    const router = useRouter()
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const isLoggedIn = localStorage.getItem("isLoggedIn");
+      if (!isLoggedIn) {
+        router.replace("/admin"); // Use replace() to avoid infinite redirects
+      } else {
+        setIsVerified(true);
+      }
+    }
+  }, [router]);
 
-    useEffect(() => {
-        const isLoggedIn = localStorage.getItem("isLoggedIn")
-        if (!isLoggedIn) {
-            router.push("/admin")
-        }
+  if (isVerified === null) {
+    return <div className="h-screen flex items-center justify-center text-xl">Loading...</div>; // Show a loading state
+  }
 
-    },[router])
-
-    return <>
-    {children}
-    </>
+  return <>{children}</>;
 }
